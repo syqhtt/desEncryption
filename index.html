@@ -2,201 +2,199 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>des加密账号密码</title>
-  <link href="static/css/bootstrap.min.css" rel="stylesheet">
-  <script src="static/js/xlsx.full.min.js"></script>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>des加密账号密码</title>
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <script src="static/js/xlsx.full.min.js"></script>
 </head>
 <style>
     body {
         padding: 0 20px;
     }
-
+    
     .over {
         display: none;
     }
-
+    
     h3 {
         margin-right: 30px;
     }
-
+    
     .has {
         display: block;
     }
-
+    
     .content {
         margin-top: 30px;
     }
-
+    
     .left {
         width: 50%;
     }
-
+    
     .right {
         width: 50%;
     }
 </style>
 
 <body>
-<div>
-  <h3>操作步骤：【在线工具地址https://uutool.cn/excel2json/】</h3>
-  <h4>1. 选择excel文件</h4>
-  <h4>2. 数据自动填充到表单内</h4>
-  <h4>3. 选择加密时间戳</h4>
-  <h4>4. 点击“加密”按钮</h4>
-  <h4>5. 点击“导出Excel”按钮</h4>
-  <button type="button" class="btn btn-primary over  jsonToExcel">导出为Excel</button>
-</div>
-<div class="content">
-  <div class="left">
-    <input type="file" id="fileUploader" name="fileUploader" accept=".xls, .xlsx"/>
-    </br>
-    </br>
-    JSON : <label id="jsonObject"> </label>
-    <div class="formArea">
-      <textarea id='myTextarea' class="form-control" placeholder="json数据" style="height:300px;width:700px;"
-                rows="3"></textarea>
-      <br>
-      <p>
-        <label>
+    <div>
+        <h3>操作步骤：【在线工具地址https://uutool.cn/excel2json/】</h3>
+        <h4>1. 选择excel文件</h4>
+        <h4>2. 数据自动填充到表单内</h4>
+        <h4>3. 选择加密时间戳</h4>
+        <h4>4. 点击“加密”按钮</h4>
+        <h4>5. 点击“导出Excel”按钮</h4>
+        <button type="button" class="btn btn-primary over  jsonToExcel">导出为Excel</button>
+    </div>
+    <div class="content">
+        <div class="left">
+            <input type="file" id="fileUploader" name="fileUploader" accept=".xls, .xlsx" />
+            </br>
+            加密前 :
+            <div class="formArea">
+                <textarea id='myTextarea' class="form-control" placeholder="json数据" style="height:300px;width:700px;" rows="3"></textarea>
+                <br>
+                <p>
+                    <label>
           <input type="radio" name="timestamp" id="innerRadio" value="inner"> 使用Excel内置的时间戳
         </label>
-        <label>
+                    <label>
           <input type="radio" name="timestamp" id="outRadio" value="out" checked> 使用输入的时间戳
         </label>
-      </p>
-      <br>
-      <input id="myKey" type="text" style="width:700px;" placeholder="时间戳" class="form-control">
-      <br>
-      <button type="button" class="btn btn-primary open"> 数据加密</button>
+                </p>
+                <br>
+                <input id="myKey" type="text" style="width:700px;" placeholder="时间戳" class="form-control">
+                <br>
+                <button type="button" class="btn btn-primary open"> 数据加密</button>
+            </div>
+            加密后：</br><label id="jsonObject"> </label>
+        </div>
     </div>
-  </div>
-</div>
 
 
-<!-- <input type="file" type="hidden" id="files" /> -->
+    <!-- <input type="file" type="hidden" id="files" /> -->
 </body>
 
 </html>
 <script src="static/js/jquery.min.js"></script>
 <script src="static/js/crypto-js.min.js"></script>
 <script>
-  $(function () {
-    //DES加密
-    var desArr
-    var desArrStr
-    // 上传excel文件
-    $('#fileUploader').change(function (evt) {
-      var selectedFile = evt.target.files[0]
-      var reader = new FileReader()
-      reader.onload = function (event) {
-        var data = event.target.result
-        var workbook = XLSX.read(data, {
-          type: 'binary'
+    $(function() {
+        //DES加密
+        var desArr
+        var desArrStr
+            // 上传excel文件
+        $('#fileUploader').change(function(evt) {
+            var selectedFile = evt.target.files[0]
+            var reader = new FileReader()
+            reader.onload = function(event) {
+                var data = event.target.result
+                var workbook = XLSX.read(data, {
+                    type: 'binary'
+                })
+                workbook.SheetNames.forEach(function(sheetName) {
+                    var XL_row_object = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName])
+                    if (XL_row_object.length > 0) {
+                        document.getElementById('myTextarea').value = JSON.stringify(XL_row_object)
+                    }
+                })
+            }
+            reader.onerror = function(event) {
+                console.error('File could not be read! Code ' + event.target.error.code)
+            }
+            reader.readAsBinaryString(selectedFile)
         })
-        workbook.SheetNames.forEach(function (sheetName) {
-          var XL_row_object = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName])
-          if (XL_row_object.length > 0) {
-            // document.getElementById("jsonObject").innerHTML = JSON.stringify(XL_row_object);
-            document.getElementById('myTextarea').value = JSON.stringify(XL_row_object)
-          }
+
+        // 加密方法
+        function encryptDes(key, val) {
+            var keyHex = CryptoJS.enc.Utf8.parse(key)
+            var option = {
+                mode: CryptoJS.mode.ECB,
+                padding: CryptoJS.pad.Pkcs7
+            }
+            var encrypted = CryptoJS.DES.encrypt(val, keyHex, option)
+            return encrypted.toString()
+        }
+
+        // [{"userName":"11107010001","password":"stuxzfz001"},{"userName":"11107010002","password":"stuxzfz002"},{"userName":"11107010003","password":"stuxzfz003"},{"userName":"11107010004","password":"stuxzfz004"},{"userName":"11107010005","password":"stuxzfz005"}]
+        $('input[name="timestamp"]').click(function(e) {
+                let value = $(this).val()
+                if (value === 'inner') {
+                    $('#myKey').val('')
+                } else {
+                    $('#myKey').val(MathRand())
+                }
+            })
+            // 点击加密按钮
+        $('.open').click(function() {
+                let mimaArr = JSON.parse(document.getElementById('myTextarea').value)
+                let key = document.getElementById('myKey').value
+                desArr = []
+                mimaArr.forEach((item, index) => {
+                    let userName = item.userName
+                    let password = item.password
+                    let veryCode = item.veryCode
+                    let timestamp
+                    if ($('#innerRadio').is(':checked')) {
+                        timestamp = item.timestamp
+                    }
+                    if ($('#outRadio').is(':checked')) {
+                        timestamp = key
+                    }
+                    let pass = {
+                        userName: encryptDes(key, userName).replace(/\+/g, '%2B'),
+                        password: encryptDes(key, password).replace(/\+/g, '%2B'),
+                        veryCode: encryptDes(key, veryCode).replace(/\+/g, '%2B'),
+                        timestamp
+                    }
+                    desArr.push(pass)
+                })
+                desArrStr = JSON.stringify(desArr)
+                document.getElementById("jsonObject").innerHTML = JSON.stringify(desArr);
+                $('.over').addClass('has')
+
+            })
+            // 点击导出excel按钮
+        $('.jsonToExcel').click(() => {
+            var filename = 'write.xlsx'
+            var ws_name = 'SheetJS'
+            var wb = XLSX.utils.book_new()
+            var ws = XLSX.utils.json_to_sheet(desArr)
+            XLSX.utils.book_append_sheet(wb, ws, ws_name)
+            XLSX.writeFile(wb, filename)
         })
-      }
-      reader.onerror = function (event) {
-        console.error('File could not be read! Code ' + event.target.error.code)
-      }
-      reader.readAsBinaryString(selectedFile)
-    })
 
-    // 加密方法
-    function encryptDes(key, val) {
-      var keyHex = CryptoJS.enc.Utf8.parse(key)
-      var option = {
-        mode: CryptoJS.mode.ECB,
-        padding: CryptoJS.pad.Pkcs7
-      }
-      var encrypted = CryptoJS.DES.encrypt(val, keyHex, option)
-      return encrypted.toString()
-    }
 
-    // [{"userName":"11107010001","password":"stuxzfz001"},{"userName":"11107010002","password":"stuxzfz002"},{"userName":"11107010003","password":"stuxzfz003"},{"userName":"11107010004","password":"stuxzfz004"},{"userName":"11107010005","password":"stuxzfz005"}]
-    $('input[name="timestamp"]').click(function (e) {
-      let value = $(this).val()
-      if (value === 'inner') {
-        $('#myKey').val('')
-      } else {
+        /**
+         * 生成随机数
+         * @return {string}
+         */
+        function MathRand() {
+            let Num = ''
+            for (let i = 0; i < 8; i++) {
+                Num += Math.floor(Math.random() * 10)
+            }
+            return Num
+        }
         $('#myKey').val(MathRand())
-      }
-    })
-    // 点击加密按钮
-    $('.open').click(function () {
-      let mimaArr = JSON.parse(document.getElementById('myTextarea').value)
-      let key = document.getElementById('myKey').value
-      desArr = []
-      mimaArr.forEach((item, index) => {
-        let userName = item.userName
-        let password = item.password
-        let veryCode = item.veryCode
-        let timestamp
-        if ($('#innerRadio').is(':checked')) {
-          timestamp = item.timestamp
+
+        // var json;
+        // var inputElement = document.getElementById("files");
+        // inputElement.addEventListener("change", handleFiles, false);
+
+        // function handleFiles() {
+        //     var selectedFile = document.getElementById("files").files[0];
+        //     var reader = new FileReader();
+        //     reader.readAsText(selectedFile, "UTF-8");
+        //     reader.onload = function() {
+        //         json = JSON.parse(this.result);
+        //     };
+        // }
+        function jsonToExcel() {
+
         }
-        if ($('#outRadio').is(':checked')) {
-          timestamp = key
-        }
-        let pass = {
-          userName: encryptDes(key, userName).replace(/\+/g, '%2B'),
-          password: encryptDes(key, password).replace(/\+/g, '%2B'),
-          veryCode: encryptDes(key, veryCode).replace(/\+/g, '%2B'),
-          timestamp
-        }
-        desArr.push(pass)
-      })
-      desArrStr = JSON.stringify(desArr)
-      console.log(desArrStr)
-      $('.over').addClass('has')
-
     })
-    // 点击导出excel按钮
-    $('.jsonToExcel').click(() => {
-      var filename = 'write.xlsx'
-      var ws_name = 'SheetJS'
-      var wb = XLSX.utils.book_new()
-      var ws = XLSX.utils.json_to_sheet(desArr)
-      XLSX.utils.book_append_sheet(wb, ws, ws_name)
-      XLSX.writeFile(wb, filename)
-    })
-
-
-    /**
-     * 生成随机数
-     * @return {string}
-     */
-    function MathRand() {
-      let Num = ''
-      for (let i = 0; i < 8; i++) {
-        Num += Math.floor(Math.random() * 10)
-      }
-      return Num
-    }
-    $('#myKey').val(MathRand())
-
-    // var json;
-    // var inputElement = document.getElementById("files");
-    // inputElement.addEventListener("change", handleFiles, false);
-
-    // function handleFiles() {
-    //     var selectedFile = document.getElementById("files").files[0];
-    //     var reader = new FileReader();
-    //     reader.readAsText(selectedFile, "UTF-8");
-    //     reader.onload = function() {
-    //         json = JSON.parse(this.result);
-    //     };
-    // }
-    function jsonToExcel() {
-
-    }
-  })
 </script>
