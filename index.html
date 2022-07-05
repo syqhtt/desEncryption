@@ -58,12 +58,15 @@
                 <textarea id='myTextarea' class="form-control" placeholder="json数据" style="height:300px;width:700px;" rows="3"></textarea>
                 <br>
                 <p>
+                    <label style="margin-right: 20px;">
+                      <input type="radio" name="timestamp" id="innerRadio" value="inner"> 使用Excel内置的时间戳(excel内需要有timestamp列)
+                    </label>
+                    <label style="margin-right: 20px;">
+                      <input type="radio" name="timestamp" id="outRadio" value="out"> 使用输入的时间戳
+                    </label>
                     <label>
-          <input type="radio" name="timestamp" id="innerRadio" value="inner"> 使用Excel内置的时间戳
-        </label>
-                    <label>
-          <input type="radio" name="timestamp" id="outRadio" value="out" checked> 使用输入的时间戳
-        </label>
+                      <input type="radio" name="timestamp" id="randomRadio" value="random" checked> 使用随机时间戳
+                    </label>
                 </p>
                 <br>
                 <input id="myKey" type="text" style="width:700px;" placeholder="时间戳" class="form-control">
@@ -98,6 +101,9 @@
                 workbook.SheetNames.forEach(function(sheetName) {
                     var XL_row_object = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName])
                     if (XL_row_object.length > 0) {
+                        XL_row_object.forEach(item => {
+                            item.veryCode = uuid(4)
+                        })
                         document.getElementById('myTextarea').value = JSON.stringify(XL_row_object)
                     }
                 })
@@ -122,7 +128,7 @@
         // [{"userName":"11107010001","password":"stuxzfz001"},{"userName":"11107010002","password":"stuxzfz002"},{"userName":"11107010003","password":"stuxzfz003"},{"userName":"11107010004","password":"stuxzfz004"},{"userName":"11107010005","password":"stuxzfz005"}]
         $('input[name="timestamp"]').click(function(e) {
                 let value = $(this).val()
-                if (value === 'inner') {
+                if (value === 'inner' || value === 'random') {
                     $('#myKey').val('')
                 } else {
                     $('#myKey').val(MathRand())
@@ -143,6 +149,9 @@
                     }
                     if ($('#outRadio').is(':checked')) {
                         timestamp = key
+                    }
+                    if ($('#randomRadio').is(':checked')) {
+                        timestamp = MathRand()
                     }
                     let pass = {
                         userName: encryptDes(key, userName).replace(/\+/g, '%2B'),
@@ -179,7 +188,16 @@
             }
             return Num
         }
-        $('#myKey').val(MathRand())
+
+        function uuid(len = 16) {
+            const arr = new Array(len).fill('x')
+            const str = arr.join('')
+            return str.replace(/[xy]/g, function(c) {
+                let r = (Math.random() * arr.length) | 0,
+                    v = c === 'x' ? r : (r & 0x3) | 0x8
+                return v.toString(arr.length)
+            })
+        }
 
         // var json;
         // var inputElement = document.getElementById("files");
