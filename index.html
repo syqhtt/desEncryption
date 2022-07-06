@@ -55,7 +55,7 @@
             </br>
             加密前 :
             <div class="formArea">
-                <textarea id='myTextarea' class="form-control" placeholder="json数据" style="height:300px;width:700px;" rows="3"></textarea>
+                <textarea id='myTextarea' class="form-control" placeholder="excel内转JSON数据" style="height:200px;width:500px;" rows="3"></textarea>
                 <br>
                 <p>
                     <label style="margin-right: 20px;">
@@ -73,7 +73,8 @@
                 <br>
                 <button type="button" class="btn btn-primary open"> 数据加密</button>
             </div>
-            加密后：</br><label id="jsonObject"> </label>
+            加密后：</br>
+            <textarea id='jsonObject' placeholder="加密后的数据" style="height:200px;width:500px;" rows="3"></textarea>
         </div>
     </div>
 
@@ -109,7 +110,7 @@
                 })
             }
             reader.onerror = function(event) {
-                console.error('File could not be read! Code ' + event.target.error.code)
+                console.error('解析失败 ' + event.target.error.code)
             }
             reader.readAsBinaryString(selectedFile)
         })
@@ -123,6 +124,17 @@
             }
             var encrypted = CryptoJS.DES.encrypt(val, keyHex, option)
             return encrypted.toString()
+        }
+        // 解密方法
+        function decryptDes(key, val) {
+            const keyHex = CryptoJS.enc.Utf8.parse(key)
+            const option = {
+                mode: CryptoJS.mode.ECB,
+                padding: CryptoJS.pad.Pkcs7
+            }
+            const decrypted = CryptoJS.DES.decrypt(val, keyHex, option)
+            const decryptedStr = decrypted.toString(CryptoJS.enc.Utf8)
+            return decryptedStr.toString()
         }
 
         // [{"userName":"11107010001","password":"stuxzfz001"},{"userName":"11107010002","password":"stuxzfz002"},{"userName":"11107010003","password":"stuxzfz003"},{"userName":"11107010004","password":"stuxzfz004"},{"userName":"11107010005","password":"stuxzfz005"}]
@@ -154,21 +166,21 @@
                         timestamp = MathRand()
                     }
                     let pass = {
-                        userName: encryptDes(key, userName).replace(/\+/g, '%2B'),
-                        password: encryptDes(key, password).replace(/\+/g, '%2B'),
-                        veryCode: encryptDes(key, veryCode).replace(/\+/g, '%2B'),
+                        userName: encryptDes(timestamp, userName).replace(/\+/g, '%2B'),
+                        password: encryptDes(timestamp, password).replace(/\+/g, '%2B'),
+                        veryCode: encryptDes(timestamp, veryCode).replace(/\+/g, '%2B'),
                         timestamp
                     }
                     desArr.push(pass)
                 })
                 desArrStr = JSON.stringify(desArr)
-                document.getElementById("jsonObject").innerHTML = JSON.stringify(desArr);
+                document.getElementById("jsonObject").value = JSON.stringify(desArr);
                 $('.over').addClass('has')
 
             })
             // 点击导出excel按钮
         $('.jsonToExcel').click(() => {
-            var filename = 'write.xlsx'
+            var filename = '加密后数据.xlsx'
             var ws_name = 'SheetJS'
             var wb = XLSX.utils.book_new()
             var ws = XLSX.utils.json_to_sheet(desArr)
@@ -197,22 +209,6 @@
                     v = c === 'x' ? r : (r & 0x3) | 0x8
                 return v.toString(arr.length)
             })
-        }
-
-        // var json;
-        // var inputElement = document.getElementById("files");
-        // inputElement.addEventListener("change", handleFiles, false);
-
-        // function handleFiles() {
-        //     var selectedFile = document.getElementById("files").files[0];
-        //     var reader = new FileReader();
-        //     reader.readAsText(selectedFile, "UTF-8");
-        //     reader.onload = function() {
-        //         json = JSON.parse(this.result);
-        //     };
-        // }
-        function jsonToExcel() {
-
         }
     })
 </script>
